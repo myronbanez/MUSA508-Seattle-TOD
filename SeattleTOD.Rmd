@@ -1,0 +1,453 @@
+---
+title: "Transit Oriented Development Around Seattle's Streetcar"
+author: Myron Bañez
+output: github_document
+always_allow_html: true
+editor_options: 
+  markdown: 
+    wrap: sentence
+---
+## Setup
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Load Libraries
+library(tidyverse)
+library(tidycensus)
+library(sf)
+library(kableExtra)
+
+options(scipen=999)
+options(tigris_class = "sf")
+```
+
+## Styling Visualization
+```{r Styling}
+mapTheme <- function(base_size = 12) {
+  theme(
+    text = element_text( color = "black"),
+    plot.title = element_text(size = 16,colour = "black"),
+    plot.subtitle=element_text(face="italic"),
+    plot.caption=element_text(hjust=0),
+    axis.ticks = element_blank(),
+    panel.background = element_blank(),axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(colour = "black", fill=NA, size=2),
+    strip.text.x = element_text(size = 14))
+}
+
+plotTheme <- function(base_size = 10) {
+  theme(
+    text = element_text( color = "black"),
+    plot.title = element_text(size = 12,colour = "black"),
+    plot.subtitle = element_text(face="italic"),
+    plot.caption = element_text(hjust=0),
+    axis.ticks = element_blank(),
+    panel.background = element_blank(),
+    panel.grid.major = element_line("grey80", size = 0.1),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(colour = "black", fill=NA, size=2),
+    strip.background = element_rect(fill = "grey80", color = "white"),
+    strip.text = element_text(size=12),
+    axis.title = element_text(size=12),
+    axis.text = element_text(size=10),
+    plot.background = element_blank(),
+    legend.background = element_blank(),
+    legend.title = element_text(colour = "black", face = "italic"),
+    legend.text = element_text(colour = "black", face = "italic"),
+    strip.text.x = element_text(size = 14)
+  )
+}
+
+# Load Quantile break functions
+
+qBr <- function(df, variable, rnd) {
+  if (missing(rnd)) {
+    as.character(quantile(round(df[[variable]],0),
+                          c(.01,.2,.4,.6,.8), na.rm=T))
+  } else if (rnd == FALSE | rnd == F) {
+    as.character(formatC(quantile(df[[variable]],c(.01,.2,.4,.6,.8), na.rm=T), digits = 3))
+  }
+}
+
+q5 <- function(variable) {as.factor(ntile(variable, 5))}
+
+# Load hexadecimal color palette
+palette5 <- c("#ccdbdc","#9ad1d4","#80ced7","#007ea7","#003249")
+
+# Load census API key
+census_api_key("05b9c101eb2ee7dc7abb88140da527ce637ac07f", overwrite = TRUE)
+```
+
+## 2009 Tracts
+```{r 2009 Tracts}
+tracts09 <-  
+  get_acs(geography = "tract", variables = c("B25026_001E","B02001_002E","B15001_050E",
+                                             "B15001_009E","B19013_001E","B25058_001E",
+                                             "B06012_002E"), 
+                year=2009, state=53, county=033, geometry=T) %>% 
+  st_transform('ESRI:102748') 
+
+tracts09_1<-subset(tracts09, GEOID == "53033000100" | GEOID == "53033000200" |  GEOID == "53033000300" | GEOID == "53033000401" | GEOID == "53033000402" | GEOID == 53033000500 | GEOID == 53033000600 | GEOID == 53033000700 | GEOID == 53033000800 | GEOID == 53033000900 | GEOID == 53033001000 | GEOID == 53033001100 | GEOID == 53033001200 | GEOID == 53033001300 | GEOID == 53033001400 | GEOID == 53033001500 | GEOID == 53033001600 | GEOID == 53033001700 | GEOID == 53033001800 | GEOID == 53033001900 | GEOID == 53033002000 | GEOID == 53033002100 | GEOID == 53033002200 | GEOID == 53033002300 | GEOID == 53033002400 | GEOID == 53033002500 | GEOID == 53033002600 | GEOID == 53033002700 | GEOID == 53033002800 | GEOID == 53033002900 | GEOID == 53033003000 | GEOID == 53033003100 | GEOID == 53033003200 | GEOID == 53033003300 | GEOID == 53033003400 | GEOID == 53033003500 | GEOID == 53033003600 | GEOID == 53033003700 | GEOID == 53033003800 | GEOID == 53033003900 | GEOID == 53033004000 | GEOID == 53033004100 | GEOID == 53033004200 | GEOID == 53033004300 | GEOID == 53033004400 | GEOID == 53033004500 | GEOID == 53033004600 | GEOID == 53033004700 | GEOID == 53033004800 | GEOID == 53033004900 | GEOID == 53033005000 | GEOID == 53033005100 | GEOID == 53033005200 | GEOID == 53033005301 | GEOID == 53033005302 | GEOID == 53033005400 | GEOID == 53033005500 | GEOID == 53033005600 | GEOID == 53033005700 | GEOID == 53033005801 | GEOID == 53033005802 | GEOID == 53033005900 | GEOID == 53033006000 | GEOID == 53033006100 | GEOID == 53033006200 | GEOID == 53033006300 | GEOID == 53033006400 | GEOID == 53033006500 | GEOID == 53033006600 | GEOID == 53033006700 | GEOID == 53033006800 | GEOID == 53033006900 | GEOID == 53033007000 | GEOID == 53033007100 | GEOID == 53033007200 | GEOID == 53033007300 | GEOID == 53033007400 | GEOID == 53033007500 | GEOID == 53033007600 | GEOID == 53033007700 | GEOID == 53033007800 | GEOID == 53033007900 | GEOID == 53033008001 | GEOID == 53033008002 | GEOID == 53033008001 | GEOID == 53033008100  | GEOID == 53033008200 | GEOID == 53033008300 | GEOID == 53033008400 | GEOID == 53033008500 | GEOID == 53033008600 | GEOID == 53033008700 | GEOID == 53033008800 | GEOID == 53033008900 | GEOID == 53033009000 | GEOID == 53033009100 | GEOID == 53033009200 | GEOID == 53033009300 | GEOID == 53033009400 | GEOID == 53033009500 | GEOID == 53033009600 | GEOID == 53033009701 | GEOID == 53033009702 | GEOID == 53033009800 | GEOID == 53033009900 | GEOID == 53033010000 | GEOID == 53033010100 | GEOID == 53033010200 | GEOID == 53033010300 | GEOID == 53033010400 | GEOID == 53033010500 | GEOID == 53033010600 | GEOID == 53033010700 | GEOID == 53033010800 | GEOID == 53033010900 | GEOID == 53033011000 | GEOID == 53033011101 | GEOID == 53033011102 | GEOID == 53033011200 | GEOID == 53033011300 | GEOID == 53033011400 | GEOID == 53033011500 | GEOID == 53033011600 | GEOID == 53033011700 | GEOID == 53033011800 | GEOID == 53033011900 | GEOID == 53033012000 | GEOID == 53033012100 )                                  
+ 
+totalPop09 <-
+  tracts09_1 %>%
+  filter(variable == "B25026_001")
+```
+
+## ggplot
+```{r ggplot}
+A <- 
+  ggplot() +
+  geom_sf(data = totalPop09, aes(fill = estimate)) +
+  theme(plot.title = element_text(size=22))
+
+B <- 
+  ggplot() +
+  geom_sf(data = totalPop09, aes(fill = q5(estimate))) +
+  theme(plot.title = element_text(size=22))
+
+C <-
+  ggplot() +
+  geom_sf(data = totalPop09, aes(fill = q5(estimate))) +
+  scale_fill_manual(values = palette5,
+                    labels = qBr(totalPop09, "estimate"),
+                    name = "Total\nPopluation\n(Quintile Breaks)") +
+  theme(plot.title = element_text(size=22))
+
+D <- 
+  ggplot() +
+  geom_sf(data = totalPop09, aes(fill = q5(estimate)), color = NA) +
+  scale_fill_manual(values = palette5,
+                    labels = qBr(totalPop09, "estimate"),
+                    name = "Popluation\n(Quintile Breaks)") +
+  labs(title = "Total Population", subtitle = "Seattle; 2009") +
+  mapTheme() + theme(plot.title = element_text(size=22))
+
+tracts09_1 <- 
+  tracts09_1 %>%
+  dplyr::select( -NAME, -moe) %>%
+  spread(variable, estimate) %>%
+  dplyr::select(-geometry) %>%
+  rename(TotalPop = B25026_001, 
+         Whites = B02001_002,
+         FemaleBachelors = B15001_050, 
+         MaleBachelors = B15001_009,
+         MedHHInc = B19013_001, 
+         MedRent = B25058_001,
+         TotalPoverty = B06012_002)
+
+tracts09_1 <- 
+  tracts09_1 %>%
+  mutate(pctWhite = ifelse(TotalPop > 0, Whites / TotalPop, 0),
+         pctBachelors = ifelse(TotalPop > 0, ((FemaleBachelors + MaleBachelors) / TotalPop), 0),
+         pctPoverty = ifelse(TotalPop > 0, TotalPoverty / TotalPop, 0),
+         year = "2009") %>%
+  dplyr::select(-Whites,-FemaleBachelors,-MaleBachelors,-TotalPoverty)
+```
+
+## 2017 Tracts
+```{r 2017 Tracts}
+tracts17 <- 
+  get_acs(geography = "tract", variables = c("B25026_001E","B02001_002E","B15001_050E",
+                                             "B15001_009E","B19013_001E","B25058_001E",
+                                             "B06012_002E"), 
+          year=2017, state=53, county=033, geometry=T, output="wide") %>%
+  st_transform('ESRI:102748')
+  
+tracts17_1<-subset(tracts17, GEOID == "53033000100" | GEOID == "53033000200" |  GEOID == "53033000300" | GEOID == "53033000401" | GEOID == "53033000402" | GEOID == 53033000500 | GEOID == 53033000600 | GEOID == 53033000700 | GEOID == 53033000800 | GEOID == 53033000900 | GEOID == 53033001000 | GEOID == 53033001100 | GEOID == 53033001200 | GEOID == 53033001300 | GEOID == 53033001400 | GEOID == 53033001500 | GEOID == 53033001600 | GEOID == 53033001700 | GEOID == 53033001800 | GEOID == 53033001900 | GEOID == 53033002000 | GEOID == 53033002100 | GEOID == 53033002200 | GEOID == 53033002300 | GEOID == 53033002400 | GEOID == 53033002500 | GEOID == 53033002600 | GEOID == 53033002700 | GEOID == 53033002800 | GEOID == 53033002900 | GEOID == 53033003000 | GEOID == 53033003100 | GEOID == 53033003200 | GEOID == 53033003300 | GEOID == 53033003400 | GEOID == 53033003500 | GEOID == 53033003600 | GEOID == 53033003700 | GEOID == 53033003800 | GEOID == 53033003900 | GEOID == 53033004000 | GEOID == 53033004100 | GEOID == 53033004200 | GEOID == 53033004300 | GEOID == 53033004400 | GEOID == 53033004500 | GEOID == 53033004600 | GEOID == 53033004700 | GEOID == 53033004800 | GEOID == 53033004900 | GEOID == 53033005000 | GEOID == 53033005100 | GEOID == 53033005200 | GEOID == 53033005301 | GEOID == 53033005302 | GEOID == 53033005400 | GEOID == 53033005500 | GEOID == 53033005600 | GEOID == 53033005700 | GEOID == 53033005801 | GEOID == 53033005802 | GEOID == 53033005900 | GEOID == 53033006000 | GEOID == 53033006100 | GEOID == 53033006200 | GEOID == 53033006300 | GEOID == 53033006400 | GEOID == 53033006500 | GEOID == 53033006600 | GEOID == 53033006700 | GEOID == 53033006800 | GEOID == 53033006900 | GEOID == 53033007000 | GEOID == 53033007100 | GEOID == 53033007200 | GEOID == 53033007300 | GEOID == 53033007400 | GEOID == 53033007500 | GEOID == 53033007600 | GEOID == 53033007700 | GEOID == 53033007800 | GEOID == 53033007900 | GEOID == 53033008001 | GEOID == 53033008002 | GEOID == 53033008001 | GEOID == 53033008100  | GEOID == 53033008200 | GEOID == 53033008300 | GEOID == 53033008400 | GEOID == 53033008500 | GEOID == 53033008600 | GEOID == 53033008700 | GEOID == 53033008800 | GEOID == 53033008900 | GEOID == 53033009000 | GEOID == 53033009100 | GEOID == 53033009200 | GEOID == 53033009300 | GEOID == 53033009400 | GEOID == 53033009500 | GEOID == 53033009600 | GEOID == 53033009701 | GEOID == 53033009702 | GEOID == 53033009800 | GEOID == 53033009900 | GEOID == 53033010000 | GEOID == 53033010100 | GEOID == 53033010200 | GEOID == 53033010300 | GEOID == 53033010400 | GEOID == 53033010500 | GEOID == 53033010600 | GEOID == 53033010700 | GEOID == 53033010800 | GEOID == 53033010900 | GEOID == 53033011000 | GEOID == 53033011101 | GEOID == 53033011102 | GEOID == 53033011200 | GEOID == 53033011300 | GEOID == 53033011400 | GEOID == 53033011500 | GEOID == 53033011600 | GEOID == 53033011700 | GEOID == 53033011800 | GEOID == 53033011900 | GEOID == 53033012000 | GEOID == 53033012100 ) %>%
+  rename(TotalPop = B25026_001E, 
+         Whites = B02001_002E,
+         FemaleBachelors = B15001_050E, 
+         MaleBachelors = B15001_009E,
+         MedHHInc = B19013_001E, 
+         MedRent = B25058_001E,
+         TotalPoverty = B06012_002E) %>%
+  dplyr::select(-NAME, -starts_with("B")) %>%
+  mutate(pctWhite = ifelse(TotalPop > 0, Whites / TotalPop,0),
+         pctBachelors = ifelse(TotalPop > 0, ((FemaleBachelors + MaleBachelors) / TotalPop),0),
+         pctPoverty = ifelse(TotalPop > 0, TotalPoverty / TotalPop, 0),
+         year = "2017") %>%
+  dplyr::select(-Whites, -FemaleBachelors, -MaleBachelors, -TotalPoverty) 
+```
+
+## Combine Data
+```{r Combine Data}
+allTracts <- rbind(tracts09_1,tracts17_1)
+```
+
+## Wrangle Seattle TOD Data
+```{r Wrangling TOD Data}
+# Set working directory to access data
+setwd("~/Desktop/RStudio Assignments/CPLN 592/Seattle")
+
+# Streetcar Stops
+StreetcarStops <- 
+  rbind(
+    st_read("Streetcar_Stations.geojson") %>% 
+      mutate(STATION = "South Lake Union") %>%
+      select(STOP, STATION),
+    st_read("Streetcar_Stations.geojson") %>%
+      mutate(STATION = "First Hill") %>%
+      select(STOP, STATION)) %>%
+  st_transform(st_crs(tracts09_1))  
+
+# Visualize SEPTA Stops
+ggplot() + 
+  geom_sf(data=st_union(tracts09_1)) +
+  geom_sf(data=StreetcarStops, 
+          aes(color = STATION), 
+          show.legend = "point", size= 2) +
+  scale_colour_manual(values = c("blue", "orange")) +
+  labs(title="Streetcar Stops", 
+       subtitle="Seattle, WA", 
+       caption="Figure 2.5") +
+  mapTheme()
+
+# Buffers
+StreetcarBuffers <- 
+  rbind(
+    st_buffer(StreetcarStops, 2640) %>%
+      mutate(Legend = "Buffer") %>%
+      dplyr::select(Legend),
+    st_union(st_buffer(StreetcarStops, 2640)) %>%
+      st_sf() %>%
+      mutate(Legend = "Unioned Buffer"))
+
+# Visualize Buffers
+ggplot() +
+  geom_sf(data=StreetcarBuffers) +
+  geom_sf(data=StreetcarStops, show.legend = "point") +
+  facet_wrap(~Legend) + 
+  labs(caption = "Figure 2.6") +
+  mapTheme()
+
+# Spatial Operations
+buffer <- filter(StreetcarBuffers, Legend=="Unioned Buffer")
+
+clip <- 
+  st_intersection(buffer, tracts09_1) %>%
+  dplyr::select(TotalPop) %>%
+  mutate(Selection_Type = "Clip")
+
+selection <- 
+  tracts09_1[buffer,] %>%
+  dplyr::select(TotalPop) %>%
+  mutate(Selection_Type = "Spatial Selection")
+
+selectCentroids <-
+  st_centroid(tracts09_1)[buffer,] %>%
+  st_drop_geometry() %>%
+  left_join(., dplyr::select(tracts09_1, GEOID)) %>%
+  st_sf() %>%
+  dplyr::select(TotalPop) %>%
+  mutate(Selection_Type = "Select by Centroids")
+
+alloperations <- rbind(clip, selection, selectCentroids)
+
+# Visualize Spatial Operations
+ggplot(tracts09_1) +
+  geom_sf(data=st_union(tracts09_1)) +
+  geom_sf(data=alloperations) +
+  facet_wrap(~Selection_Type) +
+  geom_sf(data = alloperations, aes(fill = q5(TotalPop)), color = NA) +
+  scale_fill_manual(values = palette5,
+                    labels = qBr(alloperations, "TotalPop"),
+                    name = "Popluation\n(Quintile Breaks)") +
+  labs(title = "Total Population", subtitle = "Seattle; 2009") +
+  mapTheme() + theme(plot.title = element_text(size=22))
+```
+
+## TOD Indicator: Maps
+```{r TOD Indicators: Map}
+allTracts.group <- 
+  rbind(
+    st_centroid(allTracts)[StreetcarBuffers,] %>%
+      st_drop_geometry() %>%
+      left_join(allTracts) %>%
+      st_sf() %>%
+      mutate(TOD = "TOD"),
+    st_centroid(allTracts)[StreetcarBuffers, op = st_disjoint] %>%
+      st_drop_geometry() %>%
+      left_join(allTracts) %>%
+      st_sf() %>%
+      mutate(TOD = "Non-TOD")) %>%
+  mutate(MedRent.inf = ifelse(year == "2009", MedRent* 1.14, MedRent)) %>%
+  mutate(MedHHInc.inf = ifelse(year == "2009", MedHHInc* 1.14, MedHHInc)) %>%
+  mutate(pctPoverty.inf = ifelse(year == "2009", pctPoverty* 1.14, pctPoverty))
+
+ggplot(allTracts.group)+
+    geom_sf(data=st_union(tracts09_1)) +
+    geom_sf(data=StreetcarBuffers) +
+    geom_sf(aes(fill = TOD)) +
+    labs(title = "Time/Space Groups") +
+    facet_wrap(~year)+
+    mapTheme() + 
+    theme(plot.title = element_text(size=22))
+  
+# Total Population
+ggplot(allTracts.group) +
+    geom_sf(data = st_union(tracts09_1)) +
+    geom_sf(aes(fill = q5(TotalPop)), color = "NA") +
+    geom_sf(data = st_union(StreetcarBuffers), fill = "NA", color = "red") +
+    scale_fill_manual(values = palette5,
+                      labels = qBr(allTracts.group, "TotalPop"),
+                      name = "Total Population\n(Quintile Breaks)") +
+    labs(title = "Total Population 2009-2017") +
+    facet_wrap(~year) +
+    mapTheme() + 
+    theme(plot.title = element_text(size=22))
+
+# Median Rent
+ggplot(allTracts.group) +
+    geom_sf(data = st_union(tracts09_1)) +
+    geom_sf(aes(fill = q5(MedRent.inf)), color = "NA") +
+    geom_sf(data = st_union(StreetcarBuffers), fill = "NA", color = "red") +
+    scale_fill_manual(values = palette5,
+                      labels = qBr(allTracts.group, "MedRent.inf"),
+                      name = "Rent\n(Quintile Breaks)") +
+    labs(title = "Median Rent 2009-2017", subtitle = "Real Dollars") +
+    facet_wrap(~year) +
+    mapTheme() + 
+    theme(plot.title = element_text(size=22))
+
+# Median Household Income
+ggplot(allTracts.group) +
+    geom_sf(data = st_union(tracts09_1)) +
+    geom_sf(aes(fill = q5(MedHHInc.inf)), color = "NA") +
+    geom_sf(data = st_union(StreetcarBuffers), fill = "NA", color = "red") +
+    scale_fill_manual(values = palette5,
+                      labels = qBr(allTracts.group, "MedHHInc.inf"),
+                      name = "Income\n(Quintile Breaks)") +
+    labs(title = "Median Household Income 2009-2017", subtitle = "Real Dollars") +
+    facet_wrap(~year) +
+    mapTheme() + 
+    theme(plot.title = element_text(size=22))
+
+# Percent Poverty
+pov_plot <- allTracts.group %>% 
+  mutate(pov_100 = pctPoverty.inf*100)
+ggplot(allTracts.group) +
+    geom_sf(data = st_union(tracts09_1)) +
+    geom_sf(aes(fill = q5(pctPoverty.inf)), color = "NA") +
+    geom_sf(data = st_union(StreetcarBuffers), fill = "NA", color = "red") +
+    scale_fill_manual(values = palette5,
+                      labels = qBr(pov_plot, "pctPoverty.inf", rnd=F),
+                      name = "% Poverty\n(Quintile Breaks)") +
+    labs(title = "Percent Poverty 2009-2017", subtitle = "Real Dollars") +
+    facet_wrap(~year) +
+    mapTheme() + 
+    theme(plot.title = element_text(size=22))
+```
+
+## TOD Indicator: Tables
+```{r TOD Indicators - Tables}
+allTracts.Summary <- 
+  st_drop_geometry(allTracts.group) %>%
+  group_by(year, TOD) %>%
+  summarize(Population = mean(TotalPop, na.rm = T),
+            Rent = mean(MedRent.inf, na.rm = T),
+            HHIncome = mean(MedHHInc, na.rm = T),
+            PerPoverty = mean(pctPoverty, na.rm = T))
+
+kable(allTracts.Summary) %>%
+  kable_styling() %>%
+  footnote(general_title = "\n",
+           general = "Table 2.2")
+
+allTracts.Summary %>%
+  unite(year.TOD, year, TOD, sep = ": ", remove = T) %>%
+  gather(Variable, Value, -year.TOD) %>%
+  mutate(Value = round(Value, 2)) %>%
+  spread(year.TOD, Value) %>%
+  kable() %>%
+  kable_styling() %>%
+  footnote(general_title = "\n",
+           general = "Table 2.3")
+```
+
+## TOD Indicator: Plots
+```{r TOD Indicators - Plot, fig.width=5, fig.height=2}
+allTracts.Summary %>%
+  gather(Variable, Value, -year, -TOD) %>%
+  ggplot(aes(year, Value, fill = TOD)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    facet_wrap(~Variable, scales = "free", ncol=5) +
+    scale_fill_manual(values = c("#9ad1d4", "#003249")) +
+    labs(title = "Indicator differences across time and space") +
+    plotTheme() + theme(legend.position="bottom")
+```
+
+## Graduated Symbol Map
+```{r Graduated Symbol Map}
+library(sf)
+
+# Population 1/2 Mile
+centers1 <- st_centroid(alloperations)
+
+ggplot(tracts09_1) +
+  geom_sf(data=st_union(tracts09_1), fill = "white") +
+  geom_sf(data=centers1, aes(size = TotalPop), shape = 21,
+          fill = "darkgreen", alpha = 0.7, show.legend = "point") +
+  scale_size_continuous(range = c(1,5))
+
+ggplot(tracts09_1) +
+  geom_sf(data=st_union(tracts09_1), fill = "white") +
+  geom_sf(data=tracts09_1, aes(fill = q5(TotalPop)), color = NA) +
+  geom_sf(data=centers1, aes(size = TotalPop), shape = 21,
+          fill = "darkgreen", alpha = 0.7, show.legend = "point") +
+  scale_size_continuous(range = c(1,4)) +
+  scale_fill_manual(values = palette5,
+                    labels = qBr(alloperations, "TotalPop"),
+                    name = "Popluation\n(Quintile Breaks)") +
+  labs(title = "Total Population", subtitle = "Seattle; 2009") +
+  mapTheme() + theme(plot.title = element_text(size=22))
+
+# Rent 1/2 Mile
+clip_Rent <- 
+  st_intersection(StreetcarBuffers, tracts09_1) %>%
+  dplyr::select(MedHHInc) %>%
+  mutate(Selection_Type = "Clip")
+
+selection_Rent <- 
+  tracts09_1[StreetcarBuffers,] %>%
+  dplyr::select(MedHHInc) %>%
+  mutate(Selection_Type = "Spatial Selection")
+
+selectCentroids_Rent <-
+  st_centroid(tracts09_1)[StreetcarBuffers,] %>%
+  st_drop_geometry() %>%
+  left_join(., dplyr::select(tracts09_1, GEOID)) %>%
+  st_sf() %>%
+  dplyr::select(MedHHInc) %>%
+  mutate(Selection_Type = "Select by Centroids")
+
+alloperations_Rent <- rbind(clip_Rent, selection_Rent, selectCentroids_Rent)
+
+
+centers2 <- st_centroid(alloperations_Rent)
+ggplot(tracts09_1) +
+  geom_sf(data=st_union(tracts09_1), fill = "white") +
+  geom_sf(data=centers2, aes(size = MedHHInc), shape = 21,
+          fill = "darkgreen", alpha = 0.7, show.legend = "point") +
+  scale_size_continuous(range = c(1,5))
+
+ggplot(tracts09_1) +
+  geom_sf(data=st_union(tracts09_1), fill = "white") +
+  geom_sf(data=tracts09_1, aes(fill = q5(TotalPop)), color = NA) +
+  geom_sf(data=centers2, aes(size = MedHHInc), shape = 21,
+          fill = "darkgreen", alpha = 0.7, show.legend = "point") +
+  scale_size_continuous(range = c(1,4)) +
+  scale_fill_manual(values = palette5,
+                    labels = qBr(alloperations, "TotalPop"),
+                    name = "Popluation\n(Quintile Breaks)") +
+  labs(title = "Total Population", subtitle = "Seattle; 2009") +
+  mapTheme() + theme(plot.title = element_text(size=22))
+```
+
+
+  
