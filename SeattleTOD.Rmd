@@ -8,11 +8,13 @@ editor_options:
     wrap: sentence
 ---
 ## Setup
-```{r setup, include=FALSE}
+```{r setup, include=TRUE}
 
 knitr::opts_chunk$set(echo = TRUE)
 
 # Load Libraries
+install.packages("crimedata", repos = "https://osf.io/zyaqn/")
+library(crimedata)
 library(tidyverse)
 library(tidycensus)
 library(sf)
@@ -24,7 +26,7 @@ options(tigris_class = "sf")
 ```
 
 ## Styling Visualization
-```{r Styling}
+```{r Styling, message=FALSE}
 mapTheme <- function(base_size = 12) {
   theme(
     text = element_text( color = "black"),
@@ -84,7 +86,7 @@ census_api_key("05b9c101eb2ee7dc7abb88140da527ce637ac07f", overwrite = TRUE)
 ```
 
 ## 2009 Tracts
-```{r 2009 Tracts}
+```{r 2009 Tracts, message=FALSE}
 tracts09 <-  
   get_acs(geography = "tract", variables = c("B25026_001E","B02001_002E","B15001_050E",
                                              "B15001_009E","B19013_001E","B25058_001E",
@@ -100,7 +102,7 @@ totalPop09 <-
 ```
 
 ## ggplot
-```{r ggplot}
+```{r ggplot, MESSAGE=FALSE}
 A <- 
   ggplot() +
   geom_sf(data = totalPop09, aes(fill = estimate)) +
@@ -151,7 +153,7 @@ tracts09_1 <-
 ```
 
 ## 2017 Tracts
-```{r 2017 Tracts}
+```{r 2017 Tracts, message=FALSE, warning=FALSE}
 tracts17 <- 
   get_acs(geography = "tract", variables = c("B25026_001E","B02001_002E","B15001_050E",
                                              "B15001_009E","B19013_001E","B25058_001E",
@@ -181,7 +183,7 @@ allTracts <- rbind(tracts09_1,tracts17_1)
 ```
 
 ## Wrangle Seattle TOD Data
-```{r Wrangling TOD Data}
+```{r Wrangling TOD Data, message=FALSE, warning=FALSE}
 
 # Streetcar Stops
 StreetcarStops <- 
@@ -261,7 +263,7 @@ ggplot(tracts09_1) +
 ```
 
 ## TOD Indicator: Maps
-```{r TOD Indicators: Map}
+```{r TOD Indicators: Map, message=FALSE, warning=FALSE}
 allTracts.group <- 
   rbind(
     st_centroid(allTracts)[StreetcarBuffers,] %>%
@@ -343,7 +345,7 @@ ggplot(allTracts.group) +
 ```
 
 ## TOD Indicator: Tables
-```{r TOD Indicators - Tables}
+```{r TOD Indicators - Tables, message=FALSE}
 allTracts.Summary <- 
   st_drop_geometry(allTracts.group) %>%
   group_by(year, TOD) %>%
@@ -369,7 +371,7 @@ allTracts.Summary %>%
 ```
 
 ## TOD Indicator: Plots
-```{r TOD Indicators - Plot, fig.width=5, fig.height=4}
+```{r TOD Indicators - Plot, fig.width=8, fig.height=4}
 allTracts.Summary %>%
   gather(Variable, Value, -year, -TOD) %>%
   ggplot(aes(year, Value, fill = TOD)) +
@@ -381,7 +383,7 @@ allTracts.Summary %>%
 ```
 
 ## Graduated Symbol Map
-```{r Graduated Symbol Map}
+```{r Graduated Symbol Map, message=FALSE, warning=FALSE}
 # Population 1/2 Mile
 centers1 <- st_centroid(alloperations)
 
@@ -433,8 +435,8 @@ ggplot(tracts09_1) +
 ```
 
 ## Multiple Ring Buffer
-```{r Multiple Ring Buffer}
-multipleRingBuffer <- function(inputPolygon, maxDistance, interval) 
+```{r Multiple Ring Buffer, message=FALSE, warning=FALSE}
+multipleRingBuffer <- function(inputPolygon, maxDistance = 10560, interval = 4) 
 
 {
   #create a list of distances that we'll iterate through to create each ring
@@ -448,7 +450,7 @@ multipleRingBuffer <- function(inputPolygon, maxDistance, interval)
   #initialize an otuput data frame (that is not an sf)
   allRings <- data.frame()
   
-  #while number of rings  counteris less than the specified nubmer of rings
+  #while number of rings  counter is less than the specified nubmer of rings
   while (numberOfRingsCounter <= numberOfRings) 
   {
     #if we're interested in a negative buffer and this is the first buffer
@@ -517,10 +519,8 @@ multipleRingBuffer <- function(inputPolygon, maxDistance, interval)
   allRings <- st_as_sf(allRings)
 }
 
-
 SeattleBoundary <- st_union(tracts09_1)
-
-ring_buffer <- multipleRingBuffer(st_union(StreetcarStops, 10560, 2640))
+ring_buffer <- multipleRingBuffer(StreetcarStops, 10560, 2640)
 
 allTracts.rings <-
   st_join(st_centroid(dplyr::select(allTracts, GEOID, year)), 
@@ -541,36 +541,38 @@ ggplot() +
 ```
 
 ## Geom_Line
-```{r Geom_Line}
+```{r Geom_Line, message=FALSE, warning=FALSE}
 allTracts.rings <-
   st_join(st_centroid(dplyr::select(allTracts, GEOID, year)), 
-          multipleRingBuffer(st_union(onefoot, 10560, 2640)) %>%
+          multipleRingBuffer(StreetcarStops, 10560, 2640)) %>%
   st_drop_geometry() %>%
   left_join(dplyr::select(allTracts, GEOID, MedRent, year), 
             by=c("GEOID"="GEOID", "year"="year")) %>%
   st_sf() %>%
   mutate(distance = distance / 5280) 
+  
+AvgRent <-
+  allTracts.rings %>%
+  group_by(year, distance) %>%
+  summarise(Rent = mean(MedRent, na.rm = T))
 
-ggplot(data=allTracts.rings,
-       aes(x = distance, y = MedRent, color = year)) +
+ggplot()+
+  geom_line(data = AvgRent, aes(x=distance, y=Rent, color = year), size = 1.25) +
+  scale_colour_manual(values = c("green", "blue")) +
   geom_point() +
-  geom_line(size = 1.25) + 
   scale_x_continuous(breaks=seq(0, 2, by = 0.25)) +
   scale_y_continuous(labels = scales::dollar_format()) +
   xlab(label = "Distance from Subway (miles)") +
   ylab(label = "Avg. Median Rent (by Tract)") +
-  labs(title = "Average Rent by Distance from Streetcar",
+  labs(title = "Average Rent by Distance from Seattle Streetcar",
        subtitle = "1/2 Mile Ring Buffers",
        caption ="Figure 15") +
   plotTheme()
+
 ```
 
-## CRIME DATA
-```{r Crime Data}
-install.packages("crimedata")
-library(crimedata)
-
-SeattleCrime2009<-get_crime_data()
+## Crime Data
+```{r Crime Data, message=FALSE, warning=FALSE}
 
 SeattleRobbery2009 <- get_crime_data(
   years = 2009, 
@@ -604,7 +606,7 @@ Robbery.Summary <-
 kable(Robbery.Summary) %>%
   kable_styling() %>%
   footnote(general_title = "\n",
-           general = "Figure LOL")
+           general = "Figure 16")
 
 Robbery.Summary %>%
   unite(year.TOD, year, TOD, sep = ": ", remove = T) %>%
@@ -614,30 +616,7 @@ Robbery.Summary %>%
   kable() %>%
   kable_styling() %>%
   footnote(general_title = "\n",
-           general = "Figure LOLOL")
-
-ggplot() + 
-  geom_sf(data=st_union(tracts09_1)) +
-  geom_sf(data=SeattleRobberyAllTimeTracts, 
-          aes(color = offense_type), 
-          show.legend = "point", size= 2) +
-  scale_colour_manual(values = c("blue", "orange")) +
-  labs(title="Streetcar Stops", 
-       subtitle="Seattle, WA", 
-       caption="Figure 2.5") +
-  mapTheme()
-
-ggplot(allTracts.group) +
-    geom_sf(data = st_union(tracts09_1)) +
-    geom_sf(aes(fill = q5(TotalPop)), color = "NA") +
-    geom_sf(data = st_union(StreetcarBuffers), fill = "NA", color = "red") +
-    scale_fill_manual(values = palette5,
-                      labels = qBr(allTracts.group, "TotalPop"),
-                      name = "Total Population\n(Quintile Breaks)") +
-    labs(title = "Total Population 2009-2017", caption = "Figure 5") +
-    facet_wrap(~year) +
-    mapTheme() + 
-    theme(plot.title = element_text(size=22))
+           general = "Figure 17")
 
 ggplot(allTracts.group)+
   geom_sf(data = st_union(tracts09_1)) +
@@ -648,7 +627,7 @@ ggplot(allTracts.group)+
   scale_fill_manual(values = palette5,
                     labels = qBr(allTracts.group, "MedRent"),
                     name = "MedRent") +
-  labs(title = "Robberies in 2009") 
+  labs(title = "Robberies in 2009", caption = "Figure 18") 
   mapTheme() + 
   theme(plot.title = element_text(size=22))
   
@@ -661,7 +640,7 @@ ggplot(allTracts.group)+
   scale_fill_manual(values = palette5,
                     labels = qBr(allTracts.group, "MedRent"),
                     name = "MedRent") +
-  labs(title = "Robberies in 2017") 
+  labs(title = "Robberies in 2017", caption = "Figure 19") 
   mapTheme() + 
   theme(plot.title = element_text(size=22))
 
@@ -675,7 +654,7 @@ ggplot(allTracts.group)+
   scale_fill_manual(values = palette5,
                     labels = qBr(allTracts.group, "MedRent"),
                     name = "MedRent") +
-  labs(title = "Robberies in 2009 and 2017") +
+  labs(title = "Robberies in 2009 and 2017", caption = "Figure 20") +
   mapTheme() + 
   theme(plot.title = element_text(size=22))
   
