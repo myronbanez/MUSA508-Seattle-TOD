@@ -182,8 +182,6 @@ allTracts <- rbind(tracts09_1,tracts17_1)
 
 ## Wrangle Seattle TOD Data
 ```{r Wrangling TOD Data}
-# Set working directory to access data
-setwd("~/Desktop/Seattle-main")
 
 # Streetcar Stops
 StreetcarStops <- 
@@ -202,7 +200,7 @@ ggplot() +
   geom_sf(data=StreetcarStops, 
           aes(color = STATION), 
           show.legend = "point", size= 2) +
-  scale_colour_manual(values = c("blue", "orange")) +
+  scale_colour_manual(values = c("green", "green")) +
   labs(title="Streetcar Stops", 
        subtitle="Seattle, WA", 
        caption="Figure 1") +
@@ -293,7 +291,7 @@ ggplot(allTracts.group)+
 ggplot(allTracts.group) +
     geom_sf(data = st_union(tracts09_1)) +
     geom_sf(aes(fill = q5(TotalPop)), color = "NA") +
-    geom_sf(data = st_union(StreetcarBuffers), fill = "NA", color = "red") +
+    geom_sf(data = st_union(StreetcarBuffers), fill = "NA", color = "green") +
     scale_fill_manual(values = palette5,
                       labels = qBr(allTracts.group, "TotalPop"),
                       name = "Total Population\n(Quintile Breaks)") +
@@ -306,7 +304,7 @@ ggplot(allTracts.group) +
 ggplot(allTracts.group) +
     geom_sf(data = st_union(tracts09_1)) +
     geom_sf(aes(fill = q5(MedRent.inf)), color = "NA") +
-    geom_sf(data = st_union(StreetcarBuffers), fill = "NA", color = "red") +
+    geom_sf(data = st_union(StreetcarBuffers), fill = "NA", color = "green") +
     scale_fill_manual(values = palette5,
                       labels = qBr(allTracts.group, "MedRent.inf"),
                       name = "Rent\n(Quintile Breaks)") +
@@ -319,7 +317,7 @@ ggplot(allTracts.group) +
 ggplot(allTracts.group) +
     geom_sf(data = st_union(tracts09_1)) +
     geom_sf(aes(fill = q5(MedHHInc.inf)), color = "NA") +
-    geom_sf(data = st_union(StreetcarBuffers), fill = "NA", color = "red") +
+    geom_sf(data = st_union(StreetcarBuffers), fill = "NA", color = "green") +
     scale_fill_manual(values = palette5,
                       labels = qBr(allTracts.group, "MedHHInc.inf"),
                       name = "Income\n(Quintile Breaks)") +
@@ -334,7 +332,7 @@ pov_plot <- allTracts.group %>%
 ggplot(allTracts.group) +
     geom_sf(data = st_union(tracts09_1)) +
     geom_sf(aes(fill = q5(pctPoverty.inf)), color = "NA") +
-    geom_sf(data = st_union(StreetcarBuffers), fill = "NA", color = "red") +
+    geom_sf(data = st_union(StreetcarBuffers), fill = "NA", color = "green") +
     scale_fill_manual(values = palette5,
                       labels = qBr(pov_plot, "pctPoverty.inf", rnd=F),
                       name = "% Poverty\n(Quintile Breaks)") +
@@ -391,7 +389,7 @@ ggplot(tracts09_1) +
   geom_sf(data=st_union(tracts09_1), fill = "white") +
   geom_sf(data=tracts09_1, aes(fill = q5(TotalPop)), color = NA) +
   geom_sf(data=centers1, aes(size = TotalPop), shape = 21,
-          fill = "darkgreen", alpha = 0.7, show.legend = "point") +
+          fill = "green", alpha = 0.7, show.legend = "point") +
   scale_size_continuous(range = c(1,6)) +
   scale_fill_manual(values = palette5,
                     labels = qBr(alloperations, "TotalPop"),
@@ -425,7 +423,7 @@ ggplot(tracts09_1) +
   geom_sf(data=st_union(tracts09_1), fill = "white") +
   geom_sf(data=tracts09_1, aes(fill = q5(TotalPop)), color = NA) +
   geom_sf(data=centers2, aes(size = MedHHInc), shape = 21,
-          fill = "darkgreen", alpha = 0.7, show.legend = "point") +
+          fill = "green", alpha = 0.7, show.legend = "point") +
   scale_size_continuous(range = c(1,4)) +
   scale_fill_manual(values = palette5,
                     labels = qBr(alloperations, "TotalPop"),
@@ -434,3 +432,252 @@ ggplot(tracts09_1) +
   mapTheme() + theme(plot.title = element_text(size=22))
 ```
 
+## Multiple Ring Buffer
+```{r Multiple Ring Buffer}
+multipleRingBuffer <- function(inputPolygon, maxDistance, interval) 
+
+{
+  #create a list of distances that we'll iterate through to create each ring
+  distances <- seq(0, maxDistance, interval)
+  #we'll start with the second value in that list - the first is '0'
+  distancesCounter <- 2
+  #total number of rings we're going to create
+  numberOfRings <- floor(maxDistance / interval)
+  #a counter of number of rings
+  numberOfRingsCounter <- 1
+  #initialize an otuput data frame (that is not an sf)
+  allRings <- data.frame()
+  
+  #while number of rings  counteris less than the specified nubmer of rings
+  while (numberOfRingsCounter <= numberOfRings) 
+  {
+    #if we're interested in a negative buffer and this is the first buffer
+    #(ie. not distance = '0' in the distances list)
+    if(distances[distancesCounter] < 0 & distancesCounter == 2)
+    {
+      #buffer the input by the first distance
+      buffer1 <- st_buffer(inputPolygon, distances[distancesCounter])
+      #different that buffer from the input polygon to get the first ring
+      buffer1_ <- st_difference(inputPolygon, buffer1)
+      #cast this sf as a polygon geometry type
+      thisRing <- st_cast(buffer1_, "POLYGON")
+      #take the last column which is 'geometry'
+      thisRing <- as.data.frame(thisRing[,ncol(thisRing)])
+      #add a new field, 'distance' so we know how far the distance is for a give ring
+      thisRing$distance <- distances[distancesCounter]
+    }
+    
+    
+    #otherwise, if this is the second or more ring (and a negative buffer)
+    else if(distances[distancesCounter] < 0 & distancesCounter > 2) 
+    {
+      #buffer by a specific distance
+      buffer1 <- st_buffer(inputPolygon, distances[distancesCounter])
+      #create the next smallest buffer
+      buffer2 <- st_buffer(inputPolygon, distances[distancesCounter-1])
+      #This can then be used to difference out a buffer running from 660 to 1320
+      #This works because differencing 1320ft by 660ft = a buffer between 660 & 1320.
+      #bc the area after 660ft in buffer2 = NA.
+      thisRing <- st_difference(buffer2,buffer1)
+      #cast as apolygon
+      thisRing <- st_cast(thisRing, "POLYGON")
+      #get the last field
+      thisRing <- as.data.frame(thisRing$geometry)
+      #create the distance field
+      thisRing$distance <- distances[distancesCounter]
+    }
+    
+    #Otherwise, if its a positive buffer
+    else 
+    {
+      #Create a positive buffer
+      buffer1 <- st_buffer(inputPolygon, distances[distancesCounter])
+      #create a positive buffer that is one distance smaller. So if its the first buffer
+      #distance, buffer1_ will = 0. 
+      buffer1_ <- st_buffer(inputPolygon, distances[distancesCounter-1])
+      #difference the two buffers
+      thisRing <- st_difference(buffer1,buffer1_)
+      #cast as a polygon
+      thisRing <- st_cast(thisRing, "POLYGON")
+      #geometry column as a data frame
+      thisRing <- as.data.frame(thisRing[,ncol(thisRing)])
+      #add teh distance
+      thisRing$distance <- distances[distancesCounter]
+    }  
+    
+    #rbind this ring to the rest of the rings
+    allRings <- rbind(allRings, thisRing)
+    #iterate the distance counter
+    distancesCounter <- distancesCounter + 1
+    #iterate the number of rings counter
+    numberOfRingsCounter <- numberOfRingsCounter + 1
+  }
+  
+  #convert the allRings data frame to an sf data frame
+  allRings <- st_as_sf(allRings)
+}
+
+
+SeattleBoundary <- st_union(tracts09_1)
+
+ring_buffer <- multipleRingBuffer(st_union(StreetcarStops, 10560, 2640))
+
+allTracts.rings <-
+  st_join(st_centroid(dplyr::select(allTracts, GEOID, year)), 
+          multipleRingBuffer(StreetcarStops, 10560, 2640)) %>%
+  st_drop_geometry() %>%
+  left_join(dplyr::select(allTracts, GEOID, MedRent, year), 
+            by=c("GEOID"="GEOID", "year"="year")) %>%
+  st_sf() %>%
+  mutate(distance = distance / 5280)
+
+ggplot() + 
+  geom_sf(data = SeattleBoundary, fill = "lightgray", lwd = 1) +
+  geom_sf(data = ring_buffer, fill = "white", alpha = 0.3) +
+  geom_sf(data = StreetcarStops, color = "green") +
+  labs(title = "Distances from TOD Area", 
+       subtitle = "1/2 Mile Ring Buffers", 
+       caption ="Figure 14")
+```
+
+## Geom_Line
+```{r Geom_Line}
+allTracts.rings <-
+  st_join(st_centroid(dplyr::select(allTracts, GEOID, year)), 
+          multipleRingBuffer(st_union(onefoot, 10560, 2640)) %>%
+  st_drop_geometry() %>%
+  left_join(dplyr::select(allTracts, GEOID, MedRent, year), 
+            by=c("GEOID"="GEOID", "year"="year")) %>%
+  st_sf() %>%
+  mutate(distance = distance / 5280) 
+
+ggplot(data=allTracts.rings,
+       aes(x = distance, y = MedRent, color = year)) +
+  geom_point() +
+  geom_line(size = 1.25) + 
+  scale_x_continuous(breaks=seq(0, 2, by = 0.25)) +
+  scale_y_continuous(labels = scales::dollar_format()) +
+  xlab(label = "Distance from Subway (miles)") +
+  ylab(label = "Avg. Median Rent (by Tract)") +
+  labs(title = "Average Rent by Distance from Streetcar",
+       subtitle = "1/2 Mile Ring Buffers",
+       caption ="Figure 15") +
+  plotTheme()
+```
+
+## CRIME DATA
+```{r Crime Data}
+install.packages("crimedata")
+library(crimedata)
+
+SeattleCrime2009<-get_crime_data()
+
+SeattleRobbery2009 <- get_crime_data(
+  years = 2009, 
+  cities = c("Seattle"), 
+  type = "core", output = "sf") %>%
+  filter(offense_type == "robbery") 
+
+SeattleRobbery2017 <- get_crime_data(
+  years = 2017, 
+  cities = c("Seattle"), 
+  type = "core", output = "sf") %>%
+  filter(offense_type == "robbery")
+
+SeattleRobberyAllTime <- rbind(
+  SeattleRobbery2009, SeattleRobbery2017) %>%
+  st_transform(st_crs(allTracts.group))
+
+SeattleRobberyAllTimeTracts <- st_join(SeattleRobberyAllTime, allTracts.group)
+
+SeattleCrimeCount <- count(as_tibble(allTracts.group),GEOID)
+
+SeattleCrimeCountTracts <- left_join(SeattleCrimeCount, allTracts.group, by="GEOID")
+
+Robbery.Summary <- 
+  SeattleCrimeCountTracts %>%
+  group_by(year, TOD) %>%
+  summarize(Population = mean(TotalPop, na.rm = T),
+            Rent = mean(MedRent.inf, na.rm = T),
+            Robbery = mean(n, na.rm = T))
+
+kable(Robbery.Summary) %>%
+  kable_styling() %>%
+  footnote(general_title = "\n",
+           general = "Figure LOL")
+
+Robbery.Summary %>%
+  unite(year.TOD, year, TOD, sep = ": ", remove = T) %>%
+  gather(Variable, Value, -year.TOD) %>%
+  mutate(Value = round(Value, 2)) %>%
+  spread(year.TOD, Value) %>%
+  kable() %>%
+  kable_styling() %>%
+  footnote(general_title = "\n",
+           general = "Figure LOLOL")
+
+ggplot() + 
+  geom_sf(data=st_union(tracts09_1)) +
+  geom_sf(data=SeattleRobberyAllTimeTracts, 
+          aes(color = offense_type), 
+          show.legend = "point", size= 2) +
+  scale_colour_manual(values = c("blue", "orange")) +
+  labs(title="Streetcar Stops", 
+       subtitle="Seattle, WA", 
+       caption="Figure 2.5") +
+  mapTheme()
+
+ggplot(allTracts.group) +
+    geom_sf(data = st_union(tracts09_1)) +
+    geom_sf(aes(fill = q5(TotalPop)), color = "NA") +
+    geom_sf(data = st_union(StreetcarBuffers), fill = "NA", color = "red") +
+    scale_fill_manual(values = palette5,
+                      labels = qBr(allTracts.group, "TotalPop"),
+                      name = "Total Population\n(Quintile Breaks)") +
+    labs(title = "Total Population 2009-2017", caption = "Figure 5") +
+    facet_wrap(~year) +
+    mapTheme() + 
+    theme(plot.title = element_text(size=22))
+
+ggplot(allTracts.group)+
+  geom_sf(data = st_union(tracts09_1)) +
+  geom_sf(aes(fill = q5(MedRent)), color = "NA") +
+  geom_sf(data = SeattleRobberyAllTimeTracts, show.legend = "point", size= .5, alpha = 0.5) +
+  geom_sf(data = st_union(StreetcarBuffers), fill = "transparent", color = "green", lwd = 1) +
+  geom_sf(data = StreetcarStops, color = "green", size = 1.5)+
+  scale_fill_manual(values = palette5,
+                    labels = qBr(allTracts.group, "MedRent"),
+                    name = "MedRent") +
+  labs(title = "Robberies in 2009") 
+  mapTheme() + 
+  theme(plot.title = element_text(size=22))
+  
+ggplot(allTracts.group)+
+  geom_sf(data = st_union(tracts17_1)) +
+  geom_sf(aes(fill = q5(MedRent)), color = "NA") +
+  geom_sf(data = SeattleRobberyAllTimeTracts, show.legend = "point", size= .5, alpha = 0.5) +
+  geom_sf(data = st_union(StreetcarBuffers), fill = "transparent", color = "green", lwd = 1) +
+  geom_sf(data = StreetcarStops, color = "green", size = 1.5)+
+  scale_fill_manual(values = palette5,
+                    labels = qBr(allTracts.group, "MedRent"),
+                    name = "MedRent") +
+  labs(title = "Robberies in 2017") 
+  mapTheme() + 
+  theme(plot.title = element_text(size=22))
+
+ggplot(allTracts.group)+
+  geom_sf(data = st_union(allTracts.group)) +
+  geom_sf(aes(fill = q5(MedRent)), color = "NA") +
+  facet_wrap(~year) +
+  geom_sf(data = SeattleRobberyAllTimeTracts, show.legend = "point", size= .5, alpha = 0.8) +
+  geom_sf(data = st_union(StreetcarBuffers), fill = "transparent", color = "green", lwd = 1) +
+  geom_sf(data = StreetcarStops, color = "green", size = 1.5)+
+  scale_fill_manual(values = palette5,
+                    labels = qBr(allTracts.group, "MedRent"),
+                    name = "MedRent") +
+  labs(title = "Robberies in 2009 and 2017") +
+  mapTheme() + 
+  theme(plot.title = element_text(size=22))
+  
+
+```
