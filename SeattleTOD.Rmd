@@ -8,8 +8,8 @@ editor_options:
     wrap: sentence
 ---
 ## Setup
-
 ```{r setup, include=FALSE}
+
 knitr::opts_chunk$set(echo = TRUE)
 
 # Load Libraries
@@ -17,7 +17,8 @@ library(tidyverse)
 library(tidycensus)
 library(sf)
 library(kableExtra)
-
+library(sf)
+library(RColorBrewer)
 options(scipen=999)
 options(tigris_class = "sf")
 ```
@@ -64,7 +65,6 @@ plotTheme <- function(base_size = 10) {
 }
 
 # Load Quantile break functions
-
 qBr <- function(df, variable, rnd) {
   if (missing(rnd)) {
     as.character(quantile(round(df[[variable]],0),
@@ -183,7 +183,7 @@ allTracts <- rbind(tracts09_1,tracts17_1)
 ## Wrangle Seattle TOD Data
 ```{r Wrangling TOD Data}
 # Set working directory to access data
-setwd("~/Desktop/RStudio Assignments/CPLN 592/Seattle")
+setwd("~/Desktop/Seattle-main")
 
 # Streetcar Stops
 StreetcarStops <- 
@@ -194,9 +194,9 @@ StreetcarStops <-
     st_read("Streetcar_Stations.geojson") %>%
       mutate(STATION = "First Hill") %>%
       select(STOP, STATION)) %>%
-  st_transform(st_crs(tracts09_1))  
+  st_transform(st_crs(tracts09_1))
 
-# Visualize SEPTA Stops
+# Visualize Streetcar Stops
 ggplot() + 
   geom_sf(data=st_union(tracts09_1)) +
   geom_sf(data=StreetcarStops, 
@@ -205,7 +205,7 @@ ggplot() +
   scale_colour_manual(values = c("blue", "orange")) +
   labs(title="Streetcar Stops", 
        subtitle="Seattle, WA", 
-       caption="Figure 2.5") +
+       caption="Figure 1") +
   mapTheme()
 
 # Buffers
@@ -223,7 +223,7 @@ ggplot() +
   geom_sf(data=StreetcarBuffers) +
   geom_sf(data=StreetcarStops, show.legend = "point") +
   facet_wrap(~Legend) + 
-  labs(caption = "Figure 2.6") +
+  labs(caption = "Figure 2") +
   mapTheme()
 
 # Spatial Operations
@@ -258,7 +258,7 @@ ggplot(tracts09_1) +
   scale_fill_manual(values = palette5,
                     labels = qBr(alloperations, "TotalPop"),
                     name = "Popluation\n(Quintile Breaks)") +
-  labs(title = "Total Population", subtitle = "Seattle; 2009") +
+  labs(title = "Total Population", subtitle = "Seattle; 2009", caption = "Figure 3") +
   mapTheme() + theme(plot.title = element_text(size=22))
 ```
 
@@ -284,7 +284,7 @@ ggplot(allTracts.group)+
     geom_sf(data=st_union(tracts09_1)) +
     geom_sf(data=StreetcarBuffers) +
     geom_sf(aes(fill = TOD)) +
-    labs(title = "Time/Space Groups") +
+    labs(title = "Time/Space Groups", caption = "Figure 4") +
     facet_wrap(~year)+
     mapTheme() + 
     theme(plot.title = element_text(size=22))
@@ -297,7 +297,7 @@ ggplot(allTracts.group) +
     scale_fill_manual(values = palette5,
                       labels = qBr(allTracts.group, "TotalPop"),
                       name = "Total Population\n(Quintile Breaks)") +
-    labs(title = "Total Population 2009-2017") +
+    labs(title = "Total Population 2009-2017", caption = "Figure 5") +
     facet_wrap(~year) +
     mapTheme() + 
     theme(plot.title = element_text(size=22))
@@ -310,7 +310,7 @@ ggplot(allTracts.group) +
     scale_fill_manual(values = palette5,
                       labels = qBr(allTracts.group, "MedRent.inf"),
                       name = "Rent\n(Quintile Breaks)") +
-    labs(title = "Median Rent 2009-2017", subtitle = "Real Dollars") +
+    labs(title = "Median Rent 2009-2017", subtitle = "Real Dollars", caption = "Figure 6") +
     facet_wrap(~year) +
     mapTheme() + 
     theme(plot.title = element_text(size=22))
@@ -323,7 +323,7 @@ ggplot(allTracts.group) +
     scale_fill_manual(values = palette5,
                       labels = qBr(allTracts.group, "MedHHInc.inf"),
                       name = "Income\n(Quintile Breaks)") +
-    labs(title = "Median Household Income 2009-2017", subtitle = "Real Dollars") +
+    labs(title = "Median Household Income 2009-2017", subtitle = "Real Dollars", caption = "Figure 7") +
     facet_wrap(~year) +
     mapTheme() + 
     theme(plot.title = element_text(size=22))
@@ -338,7 +338,7 @@ ggplot(allTracts.group) +
     scale_fill_manual(values = palette5,
                       labels = qBr(pov_plot, "pctPoverty.inf", rnd=F),
                       name = "% Poverty\n(Quintile Breaks)") +
-    labs(title = "Percent Poverty 2009-2017", subtitle = "Real Dollars") +
+    labs(title = "Percent Poverty 2009-2017", subtitle = "Real Dollars", caption = "Figure 8") +
     facet_wrap(~year) +
     mapTheme() + 
     theme(plot.title = element_text(size=22))
@@ -357,7 +357,7 @@ allTracts.Summary <-
 kable(allTracts.Summary) %>%
   kable_styling() %>%
   footnote(general_title = "\n",
-           general = "Table 2.2")
+           general = "Figure 9")
 
 allTracts.Summary %>%
   unite(year.TOD, year, TOD, sep = ": ", remove = T) %>%
@@ -367,46 +367,38 @@ allTracts.Summary %>%
   kable() %>%
   kable_styling() %>%
   footnote(general_title = "\n",
-           general = "Table 2.3")
+           general = "Figure 10")
 ```
 
 ## TOD Indicator: Plots
-```{r TOD Indicators - Plot, fig.width=5, fig.height=2}
+```{r TOD Indicators - Plot, fig.width=5, fig.height=4}
 allTracts.Summary %>%
   gather(Variable, Value, -year, -TOD) %>%
   ggplot(aes(year, Value, fill = TOD)) +
     geom_bar(stat = "identity", position = "dodge") +
     facet_wrap(~Variable, scales = "free", ncol=5) +
     scale_fill_manual(values = c("#9ad1d4", "#003249")) +
-    labs(title = "Indicator differences across time and space") +
+    labs(title = "Indicator differences across time and space", caption = "Figure 11") +
     plotTheme() + theme(legend.position="bottom")
 ```
 
 ## Graduated Symbol Map
 ```{r Graduated Symbol Map}
-library(sf)
-
 # Population 1/2 Mile
 centers1 <- st_centroid(alloperations)
-
-ggplot(tracts09_1) +
-  geom_sf(data=st_union(tracts09_1), fill = "white") +
-  geom_sf(data=centers1, aes(size = TotalPop), shape = 21,
-          fill = "darkgreen", alpha = 0.7, show.legend = "point") +
-  scale_size_continuous(range = c(1,5))
 
 ggplot(tracts09_1) +
   geom_sf(data=st_union(tracts09_1), fill = "white") +
   geom_sf(data=tracts09_1, aes(fill = q5(TotalPop)), color = NA) +
   geom_sf(data=centers1, aes(size = TotalPop), shape = 21,
           fill = "darkgreen", alpha = 0.7, show.legend = "point") +
-  scale_size_continuous(range = c(1,4)) +
+  scale_size_continuous(range = c(1,6)) +
   scale_fill_manual(values = palette5,
                     labels = qBr(alloperations, "TotalPop"),
                     name = "Popluation\n(Quintile Breaks)") +
-  labs(title = "Total Population", subtitle = "Seattle; 2009") +
+  labs(title = "Total Population", subtitle = "Seattle; 2009", caption = "Figure 12") +
   mapTheme() + theme(plot.title = element_text(size=22))
-
+        
 # Rent 1/2 Mile
 clip_Rent <- 
   st_intersection(StreetcarBuffers, tracts09_1) %>%
@@ -428,14 +420,7 @@ selectCentroids_Rent <-
 
 alloperations_Rent <- rbind(clip_Rent, selection_Rent, selectCentroids_Rent)
 
-
 centers2 <- st_centroid(alloperations_Rent)
-ggplot(tracts09_1) +
-  geom_sf(data=st_union(tracts09_1), fill = "white") +
-  geom_sf(data=centers2, aes(size = MedHHInc), shape = 21,
-          fill = "darkgreen", alpha = 0.7, show.legend = "point") +
-  scale_size_continuous(range = c(1,5))
-
 ggplot(tracts09_1) +
   geom_sf(data=st_union(tracts09_1), fill = "white") +
   geom_sf(data=tracts09_1, aes(fill = q5(TotalPop)), color = NA) +
@@ -445,9 +430,7 @@ ggplot(tracts09_1) +
   scale_fill_manual(values = palette5,
                     labels = qBr(alloperations, "TotalPop"),
                     name = "Popluation\n(Quintile Breaks)") +
-  labs(title = "Total Population", subtitle = "Seattle; 2009") +
+  labs(title = "Total Population", subtitle = "Seattle; 2009", caption = "Figure 13") +
   mapTheme() + theme(plot.title = element_text(size=22))
 ```
 
-
-  
