@@ -1,6 +1,9 @@
 Transit Oriented Development Around Seattle’s Streetcar
 ================
 Myron Bañez
+---
+
+Seattle's Streetcar system is loved by many residents and visitors for the quick and reliable service between neighborhoods. Owned by the Seattle Department of Transportation (SDOT) and operated by King County Metro, the Streetcar is a modern mode of transportation with time intervals between 10-15 minutes. The system currently has two lines: South Lake Union and First Hill. South Lake Union runs through the South Lake Union and Belltown neighborhoods, while the First Hill line runs through the First Hill, Capitol Hill, Central District, Chinatown-International District, and Pioneer Square neighborhoods. Transit oriented development (TOD) is an urban development and transportation strategy that aims to cluster businesses, housing, social services, and people around transit points to increase accessibility and promote sustainability. With a system already utilized by many, how can the Streetcar facilitate in improving TOD in the neighborhoods and people it services? 
 
 ## Setup
 
@@ -9,55 +12,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Load Libraries
 install.packages("crimedata", repos = "https://osf.io/zyaqn/")
-```
-
-    ## Warning: unable to access index for repository https://osf.io/zyaqn/src/contrib:
-    ##   cannot open URL 'https://osf.io/zyaqn/src/contrib/PACKAGES'
-
-    ## Warning: package 'crimedata' is not available for this version of R
-    ## 
-    ## A version of this package for your version of R might be available elsewhere,
-    ## see the ideas at
-    ## https://cran.r-project.org/doc/manuals/r-patched/R-admin.html#Installing-packages
-
-    ## Warning: unable to access index for repository https://osf.io/zyaqn/bin/macosx/contrib/4.1:
-    ##   cannot open URL 'https://osf.io/zyaqn/bin/macosx/contrib/4.1/PACKAGES'
-
-``` r
 library(crimedata)
 library(tidyverse)
-```
-
-    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──
-
-    ## ✓ ggplot2 3.3.5     ✓ purrr   0.3.4
-    ## ✓ tibble  3.1.4     ✓ dplyr   1.0.7
-    ## ✓ tidyr   1.1.3     ✓ stringr 1.4.0
-    ## ✓ readr   2.0.1     ✓ forcats 0.5.1
-
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-    ## x dplyr::filter() masks stats::filter()
-    ## x dplyr::lag()    masks stats::lag()
-
-``` r
 library(tidycensus)
-library(sf)
-```
-
-    ## Linking to GEOS 3.8.1, GDAL 3.2.1, PROJ 7.2.1
-
-``` r
 library(kableExtra)
-```
-
-    ## 
-    ## Attaching package: 'kableExtra'
-
-    ## The following object is masked from 'package:dplyr':
-    ## 
-    ##     group_rows
-
-``` r
 library(sf)
 library(RColorBrewer)
 options(scipen=999)
@@ -134,11 +92,7 @@ tracts09 <-
                                              "B06012_002E"), 
                 year=2009, state=53, county=033, geometry=T) %>% 
   st_transform('ESRI:102748') 
-```
 
-    ##   |                                                                              |                                                                      |   0%  |                                                                              |==                                                                    |   2%  |                                                                              |==                                                                    |   3%  |                                                                              |==                                                                    |   4%  |                                                                              |===                                                                   |   4%  |                                                                              |===                                                                   |   5%  |                                                                              |====                                                                  |   6%  |                                                                              |=====                                                                 |   7%  |                                                                              |=====                                                                 |   8%  |                                                                              |======                                                                |   9%  |                                                                              |=======                                                               |   9%  |                                                                              |=======                                                               |  10%  |                                                                              |=========                                                             |  12%  |                                                                              |============                                                          |  17%  |                                                                              |=============                                                         |  19%  |                                                                              |==============                                                        |  19%  |                                                                              |===============                                                       |  21%  |                                                                              |=================                                                     |  24%  |                                                                              |==================                                                    |  25%  |                                                                              |====================                                                  |  28%  |                                                                              |=====================                                                 |  30%  |                                                                              |================================                                      |  45%  |                                                                              |====================================                                  |  51%  |                                                                              |============================================                          |  62%  |                                                                              |=======================================================               |  79%  |                                                                              |=============================================================         |  87%  |                                                                              |================================================================      |  92%  |                                                                              |==================================================================    |  94%  |                                                                              |======================================================================| 100%
-
-``` r
 tracts09_1<-subset(tracts09, GEOID == "53033000100" | GEOID == "53033000200" |  GEOID == "53033000300" | GEOID == "53033000401" | GEOID == "53033000402" | GEOID == 53033000500 | GEOID == 53033000600 | GEOID == 53033000700 | GEOID == 53033000800 | GEOID == 53033000900 | GEOID == 53033001000 | GEOID == 53033001100 | GEOID == 53033001200 | GEOID == 53033001300 | GEOID == 53033001400 | GEOID == 53033001500 | GEOID == 53033001600 | GEOID == 53033001700 | GEOID == 53033001800 | GEOID == 53033001900 | GEOID == 53033002000 | GEOID == 53033002100 | GEOID == 53033002200 | GEOID == 53033002300 | GEOID == 53033002400 | GEOID == 53033002500 | GEOID == 53033002600 | GEOID == 53033002700 | GEOID == 53033002800 | GEOID == 53033002900 | GEOID == 53033003000 | GEOID == 53033003100 | GEOID == 53033003200 | GEOID == 53033003300 | GEOID == 53033003400 | GEOID == 53033003500 | GEOID == 53033003600 | GEOID == 53033003700 | GEOID == 53033003800 | GEOID == 53033003900 | GEOID == 53033004000 | GEOID == 53033004100 | GEOID == 53033004200 | GEOID == 53033004300 | GEOID == 53033004400 | GEOID == 53033004500 | GEOID == 53033004600 | GEOID == 53033004700 | GEOID == 53033004800 | GEOID == 53033004900 | GEOID == 53033005000 | GEOID == 53033005100 | GEOID == 53033005200 | GEOID == 53033005301 | GEOID == 53033005302 | GEOID == 53033005400 | GEOID == 53033005500 | GEOID == 53033005600 | GEOID == 53033005700 | GEOID == 53033005801 | GEOID == 53033005802 | GEOID == 53033005900 | GEOID == 53033006000 | GEOID == 53033006100 | GEOID == 53033006200 | GEOID == 53033006300 | GEOID == 53033006400 | GEOID == 53033006500 | GEOID == 53033006600 | GEOID == 53033006700 | GEOID == 53033006800 | GEOID == 53033006900 | GEOID == 53033007000 | GEOID == 53033007100 | GEOID == 53033007200 | GEOID == 53033007300 | GEOID == 53033007400 | GEOID == 53033007500 | GEOID == 53033007600 | GEOID == 53033007700 | GEOID == 53033007800 | GEOID == 53033007900 | GEOID == 53033008001 | GEOID == 53033008002 | GEOID == 53033008001 | GEOID == 53033008100  | GEOID == 53033008200 | GEOID == 53033008300 | GEOID == 53033008400 | GEOID == 53033008500 | GEOID == 53033008600 | GEOID == 53033008700 | GEOID == 53033008800 | GEOID == 53033008900 | GEOID == 53033009000 | GEOID == 53033009100 | GEOID == 53033009200 | GEOID == 53033009300 | GEOID == 53033009400 | GEOID == 53033009500 | GEOID == 53033009600 | GEOID == 53033009701 | GEOID == 53033009702 | GEOID == 53033009800 | GEOID == 53033009900 | GEOID == 53033010000 | GEOID == 53033010100 | GEOID == 53033010200 | GEOID == 53033010300 | GEOID == 53033010400 | GEOID == 53033010500 | GEOID == 53033010600 | GEOID == 53033010700 | GEOID == 53033010800 | GEOID == 53033010900 | GEOID == 53033011000 | GEOID == 53033011101 | GEOID == 53033011102 | GEOID == 53033011200 | GEOID == 53033011300 | GEOID == 53033011400 | GEOID == 53033011500 | GEOID == 53033011600 | GEOID == 53033011700 | GEOID == 53033011800 | GEOID == 53033011900 | GEOID == 53033012000 | GEOID == 53033012100 )                                  
  
 totalPop09 <-
@@ -207,11 +161,7 @@ tracts17 <-
                                              "B06012_002E"), 
           year=2017, state=53, county=033, geometry=T, output="wide") %>%
   st_transform('ESRI:102748')
-```
 
-    ##   |                                                                              |                                                                      |   0%  |                                                                              |===                                                                   |   4%  |                                                                              |=====                                                                 |   7%  |                                                                              |===========================                                           |  38%  |                                                                              |==============================                                        |  42%  |                                                                              |=========================================                             |  59%  |                                                                              |==========================================                            |  59%  |                                                                              |==========================================                            |  61%  |                                                                              |===========================================                           |  62%  |                                                                              |==============================================                        |  66%  |                                                                              |======================================================================| 100%
-
-``` r
 tracts17_1<-subset(tracts17, GEOID == "53033000100" | GEOID == "53033000200" |  GEOID == "53033000300" | GEOID == "53033000401" | GEOID == "53033000402" | GEOID == 53033000500 | GEOID == 53033000600 | GEOID == 53033000700 | GEOID == 53033000800 | GEOID == 53033000900 | GEOID == 53033001000 | GEOID == 53033001100 | GEOID == 53033001200 | GEOID == 53033001300 | GEOID == 53033001400 | GEOID == 53033001500 | GEOID == 53033001600 | GEOID == 53033001700 | GEOID == 53033001800 | GEOID == 53033001900 | GEOID == 53033002000 | GEOID == 53033002100 | GEOID == 53033002200 | GEOID == 53033002300 | GEOID == 53033002400 | GEOID == 53033002500 | GEOID == 53033002600 | GEOID == 53033002700 | GEOID == 53033002800 | GEOID == 53033002900 | GEOID == 53033003000 | GEOID == 53033003100 | GEOID == 53033003200 | GEOID == 53033003300 | GEOID == 53033003400 | GEOID == 53033003500 | GEOID == 53033003600 | GEOID == 53033003700 | GEOID == 53033003800 | GEOID == 53033003900 | GEOID == 53033004000 | GEOID == 53033004100 | GEOID == 53033004200 | GEOID == 53033004300 | GEOID == 53033004400 | GEOID == 53033004500 | GEOID == 53033004600 | GEOID == 53033004700 | GEOID == 53033004800 | GEOID == 53033004900 | GEOID == 53033005000 | GEOID == 53033005100 | GEOID == 53033005200 | GEOID == 53033005301 | GEOID == 53033005302 | GEOID == 53033005400 | GEOID == 53033005500 | GEOID == 53033005600 | GEOID == 53033005700 | GEOID == 53033005801 | GEOID == 53033005802 | GEOID == 53033005900 | GEOID == 53033006000 | GEOID == 53033006100 | GEOID == 53033006200 | GEOID == 53033006300 | GEOID == 53033006400 | GEOID == 53033006500 | GEOID == 53033006600 | GEOID == 53033006700 | GEOID == 53033006800 | GEOID == 53033006900 | GEOID == 53033007000 | GEOID == 53033007100 | GEOID == 53033007200 | GEOID == 53033007300 | GEOID == 53033007400 | GEOID == 53033007500 | GEOID == 53033007600 | GEOID == 53033007700 | GEOID == 53033007800 | GEOID == 53033007900 | GEOID == 53033008001 | GEOID == 53033008002 | GEOID == 53033008001 | GEOID == 53033008100  | GEOID == 53033008200 | GEOID == 53033008300 | GEOID == 53033008400 | GEOID == 53033008500 | GEOID == 53033008600 | GEOID == 53033008700 | GEOID == 53033008800 | GEOID == 53033008900 | GEOID == 53033009000 | GEOID == 53033009100 | GEOID == 53033009200 | GEOID == 53033009300 | GEOID == 53033009400 | GEOID == 53033009500 | GEOID == 53033009600 | GEOID == 53033009701 | GEOID == 53033009702 | GEOID == 53033009800 | GEOID == 53033009900 | GEOID == 53033010000 | GEOID == 53033010100 | GEOID == 53033010200 | GEOID == 53033010300 | GEOID == 53033010400 | GEOID == 53033010500 | GEOID == 53033010600 | GEOID == 53033010700 | GEOID == 53033010800 | GEOID == 53033010900 | GEOID == 53033011000 | GEOID == 53033011101 | GEOID == 53033011102 | GEOID == 53033011200 | GEOID == 53033011300 | GEOID == 53033011400 | GEOID == 53033011500 | GEOID == 53033011600 | GEOID == 53033011700 | GEOID == 53033011800 | GEOID == 53033011900 | GEOID == 53033012000 | GEOID == 53033012100 ) %>%
   rename(TotalPop = B25026_001E, 
          Whites = B02001_002E,
@@ -236,6 +186,8 @@ allTracts <- rbind(tracts09_1,tracts17_1)
 
 ## Wrangle Seattle TOD Data
 
+Utilizing SDOT's open data portal and demographic data from the American Community Survey (ACS), I will identify the TOD area and population density around the Streetcar.
+
 ``` r
 # Streetcar Stops
 StreetcarStops <- 
@@ -247,26 +199,7 @@ StreetcarStops <-
       mutate(STATION = "First Hill") %>%
       select(STOP, STATION)) %>%
   st_transform(st_crs(tracts09_1))
-```
 
-    ## Reading layer `Streetcar_Stations' from data source 
-    ##   `/Users/myronbanez/Desktop/Seattle-main/Streetcar_Stations.geojson' 
-    ##   using driver `GeoJSON'
-    ## Simple feature collection with 26 features and 3 fields
-    ## Geometry type: POINT
-    ## Dimension:     XY
-    ## Bounding box:  xmin: -122.3385 ymin: 47.59561 xmax: -122.3141 ymax: 47.62763
-    ## Geodetic CRS:  WGS 84
-    ## Reading layer `Streetcar_Stations' from data source 
-    ##   `/Users/myronbanez/Desktop/Seattle-main/Streetcar_Stations.geojson' 
-    ##   using driver `GeoJSON'
-    ## Simple feature collection with 26 features and 3 fields
-    ## Geometry type: POINT
-    ## Dimension:     XY
-    ## Bounding box:  xmin: -122.3385 ymin: 47.59561 xmax: -122.3141 ymax: 47.62763
-    ## Geodetic CRS:  WGS 84
-
-``` r
 # Visualize Streetcar Stops
 ggplot() + 
   geom_sf(data=st_union(tracts09_1)) +
@@ -345,6 +278,8 @@ ggplot(tracts09_1) +
 
 ## TOD Indicator: Maps
 
+After determining the TOD area, I will identify four variables of interest to be analyzed: population, median rent, median household income, and poverty. 
+
 ``` r
 allTracts.group <- 
   rbind(
@@ -388,6 +323,7 @@ ggplot(allTracts.group) +
     mapTheme() + 
     theme(plot.title = element_text(size=22))
 ```
+From 2009 to 2017, almost every neighborhood within the TOD area experienced an increase in population density, suggesting that residents are choosing to relocate in areas serviced by the Streetcar.
 
 ![](SeattleTOD_files/figure-gfm/TOD%20Indicators:%20Map-2.png)<!-- -->
 
@@ -405,6 +341,7 @@ ggplot(allTracts.group) +
     mapTheme() + 
     theme(plot.title = element_text(size=22))
 ```
+Rent increased dramatically around the TOD area. As more people move to an area, the rent naturally rises. However the greatest change is seen in the northern section of the TOD area as this is also home to many technology companies such as Google, Facebook, and Amazon expanding their real estate. 
 
 ![](SeattleTOD_files/figure-gfm/TOD%20Indicators:%20Map-3.png)<!-- -->
 
@@ -422,6 +359,7 @@ ggplot(allTracts.group) +
     mapTheme() + 
     theme(plot.title = element_text(size=22))
 ```
+While median household income has slightly increased in the TOD area, majority of the economic mobility was experienced in neighborhoods not serviced by the Streetcar. However, these nieghborhoods such as Madrona, Madison, Alki Beach, and Northgate to name a few, are primarily residential neighborhoods.  
 
 ![](SeattleTOD_files/figure-gfm/TOD%20Indicators:%20Map-4.png)<!-- -->
 
@@ -441,6 +379,7 @@ ggplot(allTracts.group) +
     mapTheme() + 
     theme(plot.title = element_text(size=22))
 ```
+Interestingly, poverty around Streetcar TOD has decreased significantly. This may be a result of the displacement of folks experiencing poverty who are forced to migrate to more affordable neighborhoods such as Rainier Beach and Beacon Hill. On the other hand, the decrease in poverty may also be a result of individuals who now have more access to employment opportunities and social services. 
 
 ![](SeattleTOD_files/figure-gfm/TOD%20Indicators:%20Map-5.png)<!-- -->
 
@@ -909,34 +848,26 @@ ggplot()+
        caption ="Figure 15") +
   plotTheme()
 ```
+The graph provided displays the relationship between rent and distance from the Streetcar between 2009 and 2017. Rent has skyrocketed in 2017 raising from approximately $650 to $1,210 in areas that are only half a mile away from the Streetcar. In direct correlation, rent has proportionately increased as one moves further away from the Streetcar. This may be a result of residing in more residential areas that have a higher cost of living.  
 
 ![](SeattleTOD_files/figure-gfm/Geom_Line-1.png)<!-- -->
 
 ## Crime Data
 
+To further examine TOD, I will use crime data from the Crime Open Database (CODE) maintained by Matthew Ashbury which can be accessed here https://osf.io/zyaqn/. Transportation's goal is accessibility. This is not only access to jobs, school, services, and recreation, but also allows for the opportunity of access to crime. In particular, I will look at robberies around the TOD area.
 ``` r
 SeattleRobbery2009 <- get_crime_data(
   years = 2009, 
   cities = c("Seattle"), 
   type = "core", output = "sf") %>%
   filter(offense_type == "robbery") 
-```
 
-    ##   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
-    ##   |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   1%  |                                                                              |=                                                                     |   2%  |                                                                              |==                                                                    |   3%  |                                                                              |=====                                                                 |   7%  |                                                                              |========                                                              |  12%  |                                                                              |============                                                          |  17%  |                                                                              |=============                                                         |  19%  |                                                                              |==============                                                        |  21%  |                                                                              |===============                                                       |  21%  |                                                                              |================                                                      |  23%  |                                                                              |==================                                                    |  26%  |                                                                              |===================                                                   |  27%  |                                                                              |====================                                                  |  29%  |                                                                              |======================                                                |  31%  |                                                                              |======================                                                |  32%  |                                                                              |=========================                                             |  36%  |                                                                              |==========================                                            |  37%  |                                                                              |===========================                                           |  38%  |                                                                              |=============================                                         |  42%  |                                                                              |=======================================                               |  56%  |                                                                              |=================================================                     |  69%  |                                                                              |========================================================              |  81%  |                                                                              |=========================================================             |  81%  |                                                                              |===========================================================           |  84%  |                                                                              |====================================================================  |  98%  |                                                                              |======================================================================| 100%
-
-``` r
 SeattleRobbery2017 <- get_crime_data(
   years = 2017, 
   cities = c("Seattle"), 
   type = "core", output = "sf") %>%
   filter(offense_type == "robbery")
-```
 
-    ##   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
-    ##   |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   1%  |                                                                              |==                                                                    |   3%  |                                                                              |===                                                                   |   4%  |                                                                              |====                                                                  |   6%  |                                                                              |=====                                                                 |   7%  |                                                                              |======                                                                |   9%  |                                                                              |===========                                                           |  15%  |                                                                              |===================                                                   |  27%  |                                                                              |======================                                                |  31%  |                                                                              |=======================                                               |  33%  |                                                                              |================================                                      |  46%  |                                                                              |=================================                                     |  46%  |                                                                              |==================================                                    |  49%  |                                                                              |===========================================                           |  61%  |                                                                              |===============================================                       |  68%  |                                                                              |================================================                      |  68%  |                                                                              |================================================                      |  69%  |                                                                              |=================================================                     |  70%  |                                                                              |====================================================                  |  74%  |                                                                              |=============================================================         |  87%  |                                                                              |====================================================================  |  97%  |                                                                              |======================================================================| 100%
-
-``` r
 SeattleRobberyAllTime <- rbind(
   SeattleRobbery2009, SeattleRobbery2017) %>%
   st_transform(st_crs(allTracts.group))
@@ -1174,107 +1105,14 @@ ggplot(allTracts.group)+
                     labels = qBr(allTracts.group, "MedRent"),
                     name = "MedRent") +
   labs(title = "Robberies in 2009", caption = "Figure 18") 
+  mapTheme() + 
+  theme(plot.title = element_text(size=22))
 ```
 
 ![](SeattleTOD_files/figure-gfm/Crime%20Data-1.png)<!-- -->
 
 ``` r
-  mapTheme() + 
-  theme(plot.title = element_text(size=22))
-```
 
-    ## List of 13
-    ##  $ text            :List of 11
-    ##   ..$ family       : NULL
-    ##   ..$ face         : NULL
-    ##   ..$ colour       : chr "black"
-    ##   ..$ size         : NULL
-    ##   ..$ hjust        : NULL
-    ##   ..$ vjust        : NULL
-    ##   ..$ angle        : NULL
-    ##   ..$ lineheight   : NULL
-    ##   ..$ margin       : NULL
-    ##   ..$ debug        : NULL
-    ##   ..$ inherit.blank: logi FALSE
-    ##   ..- attr(*, "class")= chr [1:2] "element_text" "element"
-    ##  $ axis.title      : list()
-    ##   ..- attr(*, "class")= chr [1:2] "element_blank" "element"
-    ##  $ axis.title.x    : list()
-    ##   ..- attr(*, "class")= chr [1:2] "element_blank" "element"
-    ##  $ axis.title.y    : list()
-    ##   ..- attr(*, "class")= chr [1:2] "element_blank" "element"
-    ##  $ axis.text       : list()
-    ##   ..- attr(*, "class")= chr [1:2] "element_blank" "element"
-    ##  $ axis.ticks      : list()
-    ##   ..- attr(*, "class")= chr [1:2] "element_blank" "element"
-    ##  $ panel.background: list()
-    ##   ..- attr(*, "class")= chr [1:2] "element_blank" "element"
-    ##  $ panel.border    :List of 5
-    ##   ..$ fill         : logi NA
-    ##   ..$ colour       : chr "black"
-    ##   ..$ size         : num 2
-    ##   ..$ linetype     : NULL
-    ##   ..$ inherit.blank: logi FALSE
-    ##   ..- attr(*, "class")= chr [1:2] "element_rect" "element"
-    ##  $ panel.grid.minor: list()
-    ##   ..- attr(*, "class")= chr [1:2] "element_blank" "element"
-    ##  $ plot.title      :List of 11
-    ##   ..$ family       : NULL
-    ##   ..$ face         : NULL
-    ##   ..$ colour       : chr "black"
-    ##   ..$ size         : num 22
-    ##   ..$ hjust        : NULL
-    ##   ..$ vjust        : NULL
-    ##   ..$ angle        : NULL
-    ##   ..$ lineheight   : NULL
-    ##   ..$ margin       : NULL
-    ##   ..$ debug        : NULL
-    ##   ..$ inherit.blank: logi FALSE
-    ##   ..- attr(*, "class")= chr [1:2] "element_text" "element"
-    ##  $ plot.subtitle   :List of 11
-    ##   ..$ family       : NULL
-    ##   ..$ face         : chr "italic"
-    ##   ..$ colour       : NULL
-    ##   ..$ size         : NULL
-    ##   ..$ hjust        : NULL
-    ##   ..$ vjust        : NULL
-    ##   ..$ angle        : NULL
-    ##   ..$ lineheight   : NULL
-    ##   ..$ margin       : NULL
-    ##   ..$ debug        : NULL
-    ##   ..$ inherit.blank: logi FALSE
-    ##   ..- attr(*, "class")= chr [1:2] "element_text" "element"
-    ##  $ plot.caption    :List of 11
-    ##   ..$ family       : NULL
-    ##   ..$ face         : NULL
-    ##   ..$ colour       : NULL
-    ##   ..$ size         : NULL
-    ##   ..$ hjust        : num 0
-    ##   ..$ vjust        : NULL
-    ##   ..$ angle        : NULL
-    ##   ..$ lineheight   : NULL
-    ##   ..$ margin       : NULL
-    ##   ..$ debug        : NULL
-    ##   ..$ inherit.blank: logi FALSE
-    ##   ..- attr(*, "class")= chr [1:2] "element_text" "element"
-    ##  $ strip.text.x    :List of 11
-    ##   ..$ family       : NULL
-    ##   ..$ face         : NULL
-    ##   ..$ colour       : NULL
-    ##   ..$ size         : num 14
-    ##   ..$ hjust        : NULL
-    ##   ..$ vjust        : NULL
-    ##   ..$ angle        : NULL
-    ##   ..$ lineheight   : NULL
-    ##   ..$ margin       : NULL
-    ##   ..$ debug        : NULL
-    ##   ..$ inherit.blank: logi FALSE
-    ##   ..- attr(*, "class")= chr [1:2] "element_text" "element"
-    ##  - attr(*, "class")= chr [1:2] "theme" "gg"
-    ##  - attr(*, "complete")= logi FALSE
-    ##  - attr(*, "validate")= logi TRUE
-
-``` r
 ggplot(allTracts.group)+
   geom_sf(data = st_union(tracts17_1)) +
   geom_sf(aes(fill = q5(MedRent)), color = "NA") +
@@ -1285,107 +1123,15 @@ ggplot(allTracts.group)+
                     labels = qBr(allTracts.group, "MedRent"),
                     name = "MedRent") +
   labs(title = "Robberies in 2017", caption = "Figure 19") 
+   mapTheme() + 
+  theme(plot.title = element_text(size=22))
+  
 ```
 
 ![](SeattleTOD_files/figure-gfm/Crime%20Data-2.png)<!-- -->
 
 ``` r
-  mapTheme() + 
-  theme(plot.title = element_text(size=22))
-```
 
-    ## List of 13
-    ##  $ text            :List of 11
-    ##   ..$ family       : NULL
-    ##   ..$ face         : NULL
-    ##   ..$ colour       : chr "black"
-    ##   ..$ size         : NULL
-    ##   ..$ hjust        : NULL
-    ##   ..$ vjust        : NULL
-    ##   ..$ angle        : NULL
-    ##   ..$ lineheight   : NULL
-    ##   ..$ margin       : NULL
-    ##   ..$ debug        : NULL
-    ##   ..$ inherit.blank: logi FALSE
-    ##   ..- attr(*, "class")= chr [1:2] "element_text" "element"
-    ##  $ axis.title      : list()
-    ##   ..- attr(*, "class")= chr [1:2] "element_blank" "element"
-    ##  $ axis.title.x    : list()
-    ##   ..- attr(*, "class")= chr [1:2] "element_blank" "element"
-    ##  $ axis.title.y    : list()
-    ##   ..- attr(*, "class")= chr [1:2] "element_blank" "element"
-    ##  $ axis.text       : list()
-    ##   ..- attr(*, "class")= chr [1:2] "element_blank" "element"
-    ##  $ axis.ticks      : list()
-    ##   ..- attr(*, "class")= chr [1:2] "element_blank" "element"
-    ##  $ panel.background: list()
-    ##   ..- attr(*, "class")= chr [1:2] "element_blank" "element"
-    ##  $ panel.border    :List of 5
-    ##   ..$ fill         : logi NA
-    ##   ..$ colour       : chr "black"
-    ##   ..$ size         : num 2
-    ##   ..$ linetype     : NULL
-    ##   ..$ inherit.blank: logi FALSE
-    ##   ..- attr(*, "class")= chr [1:2] "element_rect" "element"
-    ##  $ panel.grid.minor: list()
-    ##   ..- attr(*, "class")= chr [1:2] "element_blank" "element"
-    ##  $ plot.title      :List of 11
-    ##   ..$ family       : NULL
-    ##   ..$ face         : NULL
-    ##   ..$ colour       : chr "black"
-    ##   ..$ size         : num 22
-    ##   ..$ hjust        : NULL
-    ##   ..$ vjust        : NULL
-    ##   ..$ angle        : NULL
-    ##   ..$ lineheight   : NULL
-    ##   ..$ margin       : NULL
-    ##   ..$ debug        : NULL
-    ##   ..$ inherit.blank: logi FALSE
-    ##   ..- attr(*, "class")= chr [1:2] "element_text" "element"
-    ##  $ plot.subtitle   :List of 11
-    ##   ..$ family       : NULL
-    ##   ..$ face         : chr "italic"
-    ##   ..$ colour       : NULL
-    ##   ..$ size         : NULL
-    ##   ..$ hjust        : NULL
-    ##   ..$ vjust        : NULL
-    ##   ..$ angle        : NULL
-    ##   ..$ lineheight   : NULL
-    ##   ..$ margin       : NULL
-    ##   ..$ debug        : NULL
-    ##   ..$ inherit.blank: logi FALSE
-    ##   ..- attr(*, "class")= chr [1:2] "element_text" "element"
-    ##  $ plot.caption    :List of 11
-    ##   ..$ family       : NULL
-    ##   ..$ face         : NULL
-    ##   ..$ colour       : NULL
-    ##   ..$ size         : NULL
-    ##   ..$ hjust        : num 0
-    ##   ..$ vjust        : NULL
-    ##   ..$ angle        : NULL
-    ##   ..$ lineheight   : NULL
-    ##   ..$ margin       : NULL
-    ##   ..$ debug        : NULL
-    ##   ..$ inherit.blank: logi FALSE
-    ##   ..- attr(*, "class")= chr [1:2] "element_text" "element"
-    ##  $ strip.text.x    :List of 11
-    ##   ..$ family       : NULL
-    ##   ..$ face         : NULL
-    ##   ..$ colour       : NULL
-    ##   ..$ size         : num 14
-    ##   ..$ hjust        : NULL
-    ##   ..$ vjust        : NULL
-    ##   ..$ angle        : NULL
-    ##   ..$ lineheight   : NULL
-    ##   ..$ margin       : NULL
-    ##   ..$ debug        : NULL
-    ##   ..$ inherit.blank: logi FALSE
-    ##   ..- attr(*, "class")= chr [1:2] "element_text" "element"
-    ##  - attr(*, "class")= chr [1:2] "theme" "gg"
-    ##  - attr(*, "complete")= logi FALSE
-    ##  - attr(*, "validate")= logi TRUE
-
-``` r
 ggplot(allTracts.group)+
   geom_sf(data = st_union(allTracts.group)) +
   geom_sf(aes(fill = q5(MedRent)), color = "NA") +
@@ -1400,5 +1146,15 @@ ggplot(allTracts.group)+
   mapTheme() + 
   theme(plot.title = element_text(size=22))
 ```
+From the tables provided above, many of the robbery cases in Seattle in 2009 and 2017 did not significantly increase. However, the largest density of the city's robbery cases are located around the Streetcar TOD area shown in figure 20. 
 
 ![](SeattleTOD_files/figure-gfm/Crime%20Data-3.png)<!-- -->
+
+## Policy Conclusions
+The Seattle Streetcar is loved and serviced by many different populations. Along the South Lake Union line in the north, many of the riders are employees in the tech indstry, while many along the First Hill line in the south are low income, people of color, and employees in healthcare, maitenance, and sanitation. A jarring find in this analysis is the decrease in poverty and increase in median rent as well as the density of robberies. With these reuslts I am proposing three policy recommendations:
+
+Poverty: transit oriented development around the Seattle Streetcar's First Hill line should increase support and funding to social services and community organizations in the area. With many of the former residents being low income and people of color, this area is an opportunity zone for development but the individuals and long-time residents may be living in fear of being the next victim of displacement. Increasing support services allows for the individuals remaining to receive the help they need in order to stay in their communities. Additionally, residents who were forcibly displaced should receive free fares on any of the city's transportation services. This is because folks may return to their original neighborhoods on a handful of occassions for family, groceries, services, and recreation. 
+
+Rent: provide more affordable housing units within the TOD. With rent almost doubling, developers, landlords, companies, and the city should work to keep these areas affordable in order to increase the use of public transit to access more jobs, recreation, and services. 
+
+Robbery: with many of the robberies in Seattle being located around the Streetcar TOD, the city should increase security measures for residents within a half mile radius. This should not be accomplished with the support of the police department, but can be achieved through requiring new developments and existing properties to maintain a certain level of safety measures as well as providing equipment or technology to residents.
