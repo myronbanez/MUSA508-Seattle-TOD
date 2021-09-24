@@ -429,8 +429,8 @@ ggplot(tracts09_1) +
   scale_size_continuous(range = c(1,4)) +
   scale_fill_manual(values = palette5,
                     labels = qBr(alloperations, "TotalPop"),
-                    name = "Popluation\n(Quintile Breaks)") +
-  labs(title = "Total Population", subtitle = "Seattle; 2009", caption = "Figure 13") +
+                    name = "MedHHInc\n(Quintile Breaks)") +
+  labs(title = "Median Household Income", subtitle = "Seattle; 2009", caption = "Figure 13") +
   mapTheme() + theme(plot.title = element_text(size=22))
 ```
 
@@ -562,7 +562,7 @@ ggplot()+
   geom_point() +
   scale_x_continuous(breaks=seq(0, 2, by = 0.25)) +
   scale_y_continuous(labels = scales::dollar_format()) +
-  xlab(label = "Distance from Subway (miles)") +
+  xlab(label = "Distance from Streetcar (miles)") +
   ylab(label = "Avg. Median Rent (by Tract)") +
   labs(title = "Average Rent by Distance from Seattle Streetcar",
        subtitle = "1/2 Mile Ring Buffers",
